@@ -44,7 +44,7 @@ export async function createPatient(formData: FormData) {
 
   if (error) {
     console.error('Create Patient Error:', error.message, error.code)
-    return { error: 'Failed to create patient' }
+    return
   }
 
   revalidatePath('/patients')
@@ -182,7 +182,6 @@ export async function createRecord(formData: FormData) {
   }
 
   revalidatePath(`/patients/${patient_id}`)
-  return { success: true }
 }
 
 export async function getRecords(patientId: string) {

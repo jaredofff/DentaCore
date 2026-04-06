@@ -24,11 +24,10 @@ export async function createAppointment(formData: FormData) {
 
   if (error) {
     console.error(error)
-    return { error: 'Failed to create appointment' }
+    return
   }
 
   revalidatePath('/appointments')
-  return { success: true }
 }
 
 export async function getAppointments() {
@@ -107,10 +106,9 @@ export async function updateAppointment(formData: FormData) {
 
   if (error) {
     console.error(error)
-    return { error: 'Failed to update appointment' }
+    return
   }
 
   revalidatePath('/appointments')
   revalidatePath('/')
-  return { success: true }
 }
