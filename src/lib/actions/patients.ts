@@ -179,12 +179,12 @@ export async function createRecord(formData: FormData) {
   if (!user) throw new Error('Not authenticated')
 
   const patient_id = formData.get('patient_id') as string
-  const subjective = formData.get('subjective') as string
-  const objective = formData.get('objective') as string
-  const assessment = formData.get('assessment') as string
-  const plan = formData.get('plan') as string
+  const subjective = (formData.get('subjective') as string) || null
+  const objective = (formData.get('objective') as string) || null
+  const assessment = (formData.get('assessment') as string) || null
+  const plan = (formData.get('plan') as string) || null
 
-  const { data: record, error: recordError } = await supabase
+  const { data, error: recordError } = await supabase
     .from('clinical_records')
     .insert({
       patient_id,
@@ -196,12 +196,13 @@ export async function createRecord(formData: FormData) {
       status: 'activo'
     })
     .select()
-    .single()
 
-  if (recordError) {
-    console.error(recordError)
-    throw new Error('Failed to create clinical record')
+  if (recordError || !data || data.length === 0) {
+    console.error('CREATE RECORD ERROR:', recordError)
+    throw new Error('Failed to create clinical record: ' + (recordError?.message || 'No row returned'))
   }
+  
+  const record = data[0]
 
   // Medications logic (simple for MVP)
   const med_names = formData.getAll('med_name[]') as string[]
