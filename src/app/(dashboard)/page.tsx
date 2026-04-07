@@ -85,6 +85,7 @@ export default async function DashboardPage() {
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${
                       app.status === 'pendiente' ? 'bg-amber-100 text-amber-700' :
+                      app.status === 'confirmada' ? 'bg-blue-100 text-blue-700' :
                       app.status === 'completada' ? 'bg-emerald-100 text-emerald-700' :
                       'bg-red-100 text-red-700'
                     }`}>

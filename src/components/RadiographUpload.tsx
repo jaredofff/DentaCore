@@ -3,8 +3,10 @@
 import React, { useState } from 'react'
 import { UploadCloud, Image as ImageIcon, Loader2, X } from 'lucide-react'
 import { uploadRadiograph } from '@/lib/actions/radiographs'
+import { useToast } from './ui/Toast'
 
 export default function RadiographUpload({ patientId }: { patientId: string }) {
+  const { toast } = useToast()
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,8 +47,10 @@ export default function RadiographUpload({ patientId }: { patientId: string }) {
       const result = await uploadRadiograph(formData)
       if (result.error) {
         setError(result.error)
+        toast(result.error, 'error')
       } else {
         clearFile()
+        toast('Radiografía vinculada con éxito', 'success')
         const target = e.target as HTMLFormElement
         target.reset()
       }

@@ -57,7 +57,14 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
                  </div>
               </div>
               <div className="pt-10">
-                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{patient.full_name}</h1>
+                <div className="flex items-center gap-3 mt-1">
+                  <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{patient.full_name}</h1>
+                  {patient.status === 'inactivo' && (
+                    <span className="text-[10px] font-black px-2 py-0.5 bg-red-100 text-red-600 rounded-md uppercase tracking-widest border border-red-200">
+                      Inactivo
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-3 mt-1">
                   <span className="text-xs font-bold px-3 py-1 bg-blue-50 text-blue-600 rounded-full tracking-wider uppercase">
                     {patient.folio || 'SIN FOLIO'}

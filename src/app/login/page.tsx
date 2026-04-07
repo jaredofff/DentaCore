@@ -70,9 +70,14 @@ export default async function LoginPage({
           </div>
         </form>
       </div>
-      <p className="mt-8 text-slate-400 text-xs uppercase tracking-widest font-semibold">
-        Plataforma Dental MVP v1.0
-      </p>
+      <div className="mt-8 flex flex-col items-center gap-2">
+        <p className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-black">
+          DentaCore Clinical v1.0
+        </p>
+        <button className="text-blue-500 hover:text-blue-600 text-[10px] font-black uppercase tracking-widest hover:underline transition-all">
+          Aviso de Privacidad (LFPDPPP)
+        </button>
+      </div>
     </div>
   )
 }

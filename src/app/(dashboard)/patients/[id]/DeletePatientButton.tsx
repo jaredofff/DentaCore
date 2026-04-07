@@ -8,14 +8,14 @@ export default function DeletePatientButton({ patientId, patientName }: { patien
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(`¿Estás seguro de que deseas eliminar permanentemente a ${patientName}? Esta acción borrará también todo su historial clínico, citas y radiografías.`)
+    const confirmed = window.confirm(`¿Estás seguro de que deseas eliminar este registro? Si el paciente tiene historial clínico, será marcado como inactivo por normativa. Si no tiene historial, se eliminará permanentemente.`)
     
     if (confirmed) {
       setIsDeleting(true)
       try {
         await deletePatient(patientId)
       } catch (error) {
-        alert('Hubo un error al eliminar el paciente.')
+        alert('Hubo un error al procesar la solicitud.')
         setIsDeleting(false)
       }
     }

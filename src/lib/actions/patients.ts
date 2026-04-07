@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { logAudit } from './audit'
 
 export async function createPatient(formData: FormData) {
   const supabase = await createClient()
@@ -11,12 +12,12 @@ export async function createPatient(formData: FormData) {
   if (!user) throw new Error('Not authenticated')
 
   const full_name = formData.get('full_name') as string
-  const document_id = formData.get('document_id') as string
-  const birth_date = formData.get('birth_date') as string
-  const gender = formData.get('gender') as string
-  const phone = formData.get('phone') as string
-  const email = formData.get('email') as string
-  const address = formData.get('address') as string
+  const document_id = (formData.get('document_id') as string) || null
+  const birth_date = (formData.get('birth_date') as string) || null
+  const gender = (formData.get('gender') as string) || null
+  const phone = (formData.get('phone') as string) || null
+  const email = (formData.get('email') as string) || null
+  const address = (formData.get('address') as string) || null
   let folio = formData.get('folio') as string
 
   // Lógica de Folio Automático
@@ -30,7 +31,7 @@ export async function createPatient(formData: FormData) {
     folio = `PAC-${nextNumber.toString().padStart(4, '0')}`
   }
 
-  const { error } = await supabase.from('patients').insert({
+  const { data: newPatient, error } = await supabase.from('patients').insert({
     full_name,
     document_id,
     birth_date,
@@ -39,13 +40,21 @@ export async function createPatient(formData: FormData) {
     email,
     address,
     folio,
-    user_id: user.id
-  })
+    user_id: user.id,
+    status: 'activo'
+  }).select().single()
 
   if (error) {
     console.error('Create Patient Error:', error.message, error.code)
     return
   }
+
+  await logAudit({
+    action: 'CREATE',
+    table_name: 'patients',
+    record_id: newPatient.id,
+    new_data: newPatient
+  })
 
   revalidatePath('/patients')
   redirect('/patients')
@@ -118,14 +127,46 @@ export async function getDashboardStats() {
 
 export async function deletePatient(id: string) {
   const supabase = await createClient()
-  const { error } = await supabase
-    .from('patients')
-    .delete()
-    .eq('id', id)
   
-  if (error) {
-    console.error('Delete Patient Error:', error.message, error.code)
-    throw new Error('Failed to delete patient')
+  // Verificar si tiene historial (notas clínicas)
+  const { count } = await supabase
+    .from('clinical_records')
+    .select('*', { count: 'exact', head: true })
+    .eq('patient_id', id)
+
+  if (count && count > 0) {
+    // Si tiene historial, marcar como inactivo
+    const { data: oldData } = await supabase.from('patients').select('*').eq('id', id).single()
+    const { error } = await supabase
+      .from('patients')
+      .update({ status: 'inactivo' })
+      .eq('id', id)
+    
+    if (error) throw new Error('Failed to deactivate patient')
+
+    await logAudit({
+      action: 'UPDATE',
+      table_name: 'patients',
+      record_id: id,
+      old_data: oldData,
+      new_data: { ...oldData, status: 'inactivo' }
+    })
+  } else {
+    // Si no tiene historial, eliminación física permitida
+    const { data: oldData } = await supabase.from('patients').select('*').eq('id', id).single()
+    const { error } = await supabase
+      .from('patients')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw new Error('Failed to delete patient')
+
+    await logAudit({
+      action: 'DELETE',
+      table_name: 'patients',
+      record_id: id,
+      old_data: oldData
+    })
   }
 
   revalidatePath('/patients')
@@ -151,7 +192,8 @@ export async function createRecord(formData: FormData) {
       subjective,
       objective,
       assessment,
-      plan
+      plan,
+      status: 'activo'
     })
     .select()
     .single()
@@ -168,11 +210,13 @@ export async function createRecord(formData: FormData) {
   const med_indications = formData.getAll('med_indications[]') as string[]
 
   if (med_names.length > 0) {
+    const med_durations = formData.getAll('med_duration[]') as string[]
     const medsToInsert = med_names.map((name, i) => ({
       record_id: record.id,
       name,
       dosage: med_dosages[i],
       frequency: med_frequencies[i],
+      duration: med_durations[i],
       indications: med_indications[i]
     })).filter(m => m.name.trim() !== '')
 
@@ -180,6 +224,13 @@ export async function createRecord(formData: FormData) {
       await supabase.from('medications').insert(medsToInsert)
     }
   }
+
+  await logAudit({
+    action: 'CREATE',
+    table_name: 'clinical_records',
+    record_id: record.id,
+    new_data: record
+  })
 
   revalidatePath(`/patients/${patient_id}`)
 }

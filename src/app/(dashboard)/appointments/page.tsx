@@ -58,6 +58,7 @@ export default async function AppointmentsPage() {
                        <div className="flex items-center gap-4">
                           <span className={`hidden md:block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
                              app.status === 'pendiente' ? 'bg-amber-50 text-amber-600' : 
+                             app.status === 'confirmada' ? 'bg-blue-50 text-blue-600' :
                              app.status === 'completada' ? 'bg-emerald-50 text-emerald-600' :
                              'bg-red-50 text-red-600'
                           }`}>

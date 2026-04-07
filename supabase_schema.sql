@@ -16,7 +16,8 @@ create table public.patients (
     phone text,
     email text,
     address text,
-    folio text -- ID Paciente (PAC-XXXX)
+    folio text, -- ID Paciente (PAC-XXXX)
+    status text default 'activo' -- activo, inactivo
 );
 
 -- Asegurar que el folio sea único por doctor
@@ -31,7 +32,8 @@ create table public.clinical_records (
     subjective text,  -- Motivo de consulta, síntomas
     objective text,   -- Hallazgos clínicos, signos
     assessment text,  -- Diagnóstico inicial/Análisis
-    plan text         -- Tratamiento propuesto
+    plan text,         -- Tratamiento propuesto
+    status text default 'activo' -- activo, cancelado
 );
 
 -- 3. Tabla de Medicamentos / Prescripciones
@@ -42,6 +44,7 @@ create table public.medications (
     name text not null,
     dosage text,
     frequency text,
+    duration text,
     indications text
 );
 
@@ -54,7 +57,7 @@ create table public.appointments (
     appointment_date timestamp with time zone not null,
     procedure text,
     observations text,
-    status text default 'pendiente' -- pendiente, completada, cancelada
+    status text default 'pendiente' -- pendiente, confirmada, completada, cancelada
 );
 
 -- RLS (Row Level Security)
@@ -157,3 +160,22 @@ USING (doctor_id = auth.uid());
 CREATE POLICY "Los doctores pueden registrar estados en el odontograma" 
 ON public.odontogram FOR INSERT 
 WITH CHECK (doctor_id = auth.uid());
+
+-- 7. Tabla de Logs de Auditoría
+CREATE TABLE public.audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    user_id UUID REFERENCES auth.users(id),
+    action TEXT NOT NULL, -- CREATE, UPDATE, DELETE, CANCEL
+    table_name TEXT NOT NULL,
+    record_id UUID NOT NULL,
+    old_data JSONB,
+    new_data JSONB,
+    ip_address TEXT
+);
+
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Los doctores pueden ver sus propios logs" 
+ON public.audit_logs FOR SELECT 
+USING (user_id = auth.uid());

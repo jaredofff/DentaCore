@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { v4 as uuidv4 } from 'uuid'
+import { logAudit } from './audit'
 
 export async function uploadRadiograph(formData: FormData) {
   const supabase = await createClient()
@@ -46,7 +47,7 @@ export async function uploadRadiograph(formData: FormData) {
     .getPublicUrl(fileName)
 
   // Save to DB
-  const { error: dbError } = await supabase
+  const { data: newEntry, error: dbError } = await supabase
     .from('radiographs')
     .insert({
       patient_id,
@@ -56,6 +57,8 @@ export async function uploadRadiograph(formData: FormData) {
       date,
       notes
     })
+    .select()
+    .single()
 
   if (dbError) {
     console.error('DB Error:', dbError)
@@ -63,6 +66,13 @@ export async function uploadRadiograph(formData: FormData) {
     await supabase.storage.from('radiographs').remove([fileName])
     return { error: 'Failed to save radiograph record' }
   }
+
+  await logAudit({
+    action: 'CREATE',
+    table_name: 'radiographs',
+    record_id: newEntry.id,
+    new_data: newEntry
+  })
 
   revalidatePath(`/patients/${patient_id}`)
   return { success: true }
@@ -99,6 +109,7 @@ export async function deleteRadiograph(radiographId: string, imageUrl: string, p
     }
   }
 
+  const { data: oldData } = await supabase.from('radiographs').select('*').eq('id', radiographId).single()
   const { error } = await supabase
     .from('radiographs')
     .delete()
@@ -108,6 +119,13 @@ export async function deleteRadiograph(radiographId: string, imageUrl: string, p
     console.error(error)
     return { error: 'Failed to delete radiograph record' }
   }
+
+  await logAudit({
+    action: 'DELETE',
+    table_name: 'radiographs',
+    record_id: radiographId,
+    old_data: oldData
+  })
 
   revalidatePath(`/patients/${patientId}`)
   return { success: true }

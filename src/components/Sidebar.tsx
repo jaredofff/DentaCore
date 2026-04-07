@@ -55,7 +55,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-100">
+      <div className="p-4 border-t border-slate-100 flex flex-col gap-2">
         <button
           onClick={() => logout()}
           className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all group"
@@ -63,6 +63,12 @@ export default function Sidebar() {
           <LogOut size={20} className="text-slate-400 group-hover:text-red-500" />
           Cerrar sesión
         </button>
+        <div className="px-4 py-2 mt-2">
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">DentaCore v1.0</p>
+          <button className="text-[9px] font-black text-blue-400 hover:text-blue-600 uppercase tracking-tighter mt-1 transition-colors">
+            Aviso de Privacidad
+          </button>
+        </div>
       </div>
     </div>
   )

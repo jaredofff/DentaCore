@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { Plus, Trash2, Wand2, Save, ClipboardList, Pill, Activity, Stethoscope } from 'lucide-react'
 import { createRecord } from '@/lib/actions/patients'
 import { cn } from '@/lib/utils'
+import { useToast } from './ui/Toast'
 
 interface SOAPFormProps {
   patientId: string
@@ -11,7 +12,8 @@ interface SOAPFormProps {
 }
 
 export default function SOAPForm({ patientId, onSuccess }: SOAPFormProps) {
-  const [medications, setMedications] = useState<{ id: string; name: string; dosage: string; frequency: string; indications: string }[]>([])
+  const { toast } = useToast()
+  const [medications, setMedications] = useState<{ id: string; name: string; dosage: string; frequency: string; duration: string; indications: string }[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [soapData, setSoapData] = useState({
     subjective: '',
@@ -21,7 +23,7 @@ export default function SOAPForm({ patientId, onSuccess }: SOAPFormProps) {
   })
 
   const addMedication = () => {
-    setMedications([...medications, { id: crypto.randomUUID(), name: '', dosage: '', frequency: '', indications: '' }])
+    setMedications([...medications, { id: crypto.randomUUID(), name: '', dosage: '', frequency: '', duration: '', indications: '' }])
   }
 
   const removeMedication = (id: string) => {
@@ -44,7 +46,7 @@ export default function SOAPForm({ patientId, onSuccess }: SOAPFormProps) {
     if (medications.length > 0) {
       note += `\nPRESCRIPCIÓN:\n`
       medications.forEach(m => {
-        if (m.name) note += `- ${m.name} (${m.dosage}, ${m.frequency}): ${m.indications}\n`
+        if (m.name) note += `- ${m.name} (${m.dosage}, ${m.frequency}, por ${m.duration}): ${m.indications}\n`
       })
     }
 
@@ -60,11 +62,13 @@ export default function SOAPForm({ patientId, onSuccess }: SOAPFormProps) {
 
     try {
       await createRecord(formData)
+      toast('Historia clínica guardada con éxito', 'success')
       setSoapData({ subjective: '', objective: '', assessment: '', plan: '' })
       setMedications([])
       if (onSuccess) onSuccess()
     } catch (err) {
       console.error(err)
+      toast('Error al guardar la historia clínica', 'error')
     } finally {
       setIsSubmitting(false)
     }
@@ -156,8 +160,8 @@ export default function SOAPForm({ patientId, onSuccess }: SOAPFormProps) {
         {medications.length > 0 ? (
           <div className="space-y-4">
             {medications.map((med) => (
-              <div key={med.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50/50 p-6 rounded-[1.5rem] border border-slate-100 animate-in fade-in zoom-in-95 duration-200 group relative">
-                <div className="space-y-1">
+              <div key={med.id} className="grid grid-cols-2 md:grid-cols-5 gap-4 bg-slate-50/50 p-6 rounded-[1.5rem] border border-slate-100 animate-in fade-in zoom-in-95 duration-200 group relative">
+                <div className="col-span-2 md:col-span-1 space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nombre</label>
                   <input
                     name="med_name[]"
@@ -177,7 +181,15 @@ export default function SOAPForm({ patientId, onSuccess }: SOAPFormProps) {
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Frecuencia</label>
                   <input
                     name="med_frequency[]"
-                    placeholder="Cada 8 horas"
+                    placeholder="C/ 8 horas"
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Duración</label>
+                  <input
+                    name="med_duration[]"
+                    placeholder="7 días"
                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                   />
                 </div>

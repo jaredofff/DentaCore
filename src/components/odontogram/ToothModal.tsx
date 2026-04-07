@@ -4,6 +4,7 @@ import { ToothStatus } from '@/types'
 import { updateToothStatus } from '@/lib/actions/odontogram'
 import { useState } from 'react'
 import { X, Save, AlertCircle } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
 
 interface ToothModalProps {
   patientId: string
@@ -16,6 +17,7 @@ interface ToothModalProps {
 const statusOptions: ToothStatus[] = ['Sano', 'Caries', 'Restauración', 'Endodoncia', 'Extracción', 'Prótesis']
 
 export default function ToothModal({ patientId, toothNumber, currentStatus, currentNotes, onClose }: ToothModalProps) {
+  const { toast } = useToast()
   const [status, setStatus] = useState<ToothStatus>(currentStatus)
   const [notes, setNotes] = useState(currentNotes || '')
   const [isSaving, setIsSaving] = useState(false)
@@ -35,9 +37,11 @@ export default function ToothModal({ patientId, toothNumber, currentStatus, curr
     try {
       const result = await updateToothStatus(formData)
       if (result.success) {
+        toast(`Pieza ${toothNumber} actualizada a: ${status}`, 'success')
         onClose()
       } else {
         setError(result.error || 'Error al guardar')
+        toast(result.error || 'Error al guardar', 'error')
       }
     } catch (err) {
       setError('Error de conexión')

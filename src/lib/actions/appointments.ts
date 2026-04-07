@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { logAudit } from './audit'
 
 export async function createAppointment(formData: FormData) {
   const supabase = await createClient()
@@ -13,19 +14,26 @@ export async function createAppointment(formData: FormData) {
   const procedure = formData.get('procedure') as string
   const observations = formData.get('observations') as string
 
-  const { error } = await supabase.from('appointments').insert({
+  const { data: newAppointment, error } = await supabase.from('appointments').insert({
     patient_id,
     doctor_id: user.id,
     appointment_date,
     procedure,
     observations,
     status: 'pendiente'
-  })
+  }).select().single()
 
   if (error) {
     console.error(error)
     return
   }
+
+  await logAudit({
+    action: 'CREATE',
+    table_name: 'appointments',
+    record_id: newAppointment.id,
+    new_data: newAppointment
+  })
 
   revalidatePath('/appointments')
 }
@@ -49,7 +57,8 @@ export async function getAppointments() {
 
 export async function getUpcomingAppointments() {
   const supabase = await createClient()
-  const now = new Date().toISOString()
+  const startOfDay = new Date()
+  startOfDay.setHours(0, 0, 0, 0)
   
   const { data, error } = await supabase
     .from('appointments')
@@ -57,10 +66,10 @@ export async function getUpcomingAppointments() {
       *,
       patients (full_name)
     `)
-    .gte('appointment_date', now)
+    .gte('appointment_date', startOfDay.toISOString())
     .neq('status', 'cancelada')
     .order('appointment_date', { ascending: true })
-    .limit(5)
+    .limit(10)
   
   if (error) {
     console.error(error)
@@ -69,8 +78,9 @@ export async function getUpcomingAppointments() {
   return data
 }
 
-export async function updateAppointmentStatus(appointmentId: string, status: 'pendiente' | 'completada' | 'cancelada') {
+export async function updateAppointmentStatus(appointmentId: string, status: 'pendiente' | 'confirmada' | 'completada' | 'cancelada') {
   const supabase = await createClient()
+  const { data: oldData } = await supabase.from('appointments').select('*').eq('id', appointmentId).single()
   const { error } = await supabase
     .from('appointments')
     .update({ status })
@@ -80,6 +90,14 @@ export async function updateAppointmentStatus(appointmentId: string, status: 'pe
     console.error(error)
     return { error: 'Failed to update status' }
   }
+
+  await logAudit({
+    action: 'UPDATE',
+    table_name: 'appointments',
+    record_id: appointmentId,
+    old_data: oldData,
+    new_data: { ...oldData, status }
+  })
   
   revalidatePath('/appointments')
   revalidatePath('/')
@@ -92,8 +110,9 @@ export async function updateAppointment(formData: FormData) {
   const appointment_date = formData.get('appointment_date') as string
   const procedure = formData.get('procedure') as string
   const observations = formData.get('observations') as string
-  const status = formData.get('status') as 'pendiente' | 'completada' | 'cancelada'
+  const status = formData.get('status') as 'pendiente' | 'confirmada' | 'completada' | 'cancelada'
 
+  const { data: oldData } = await supabase.from('appointments').select('*').eq('id', id).single()
   const { error } = await supabase
     .from('appointments')
     .update({
@@ -108,6 +127,14 @@ export async function updateAppointment(formData: FormData) {
     console.error(error)
     return
   }
+
+  await logAudit({
+    action: 'UPDATE',
+    table_name: 'appointments',
+    record_id: id,
+    old_data: oldData,
+    new_data: { appointment_date, procedure, observations, status }
+  })
 
   revalidatePath('/appointments')
   revalidatePath('/')
