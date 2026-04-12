@@ -104,126 +104,129 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
         </div>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Columna Izquierda: Contenido Principal (8/12) */}
-        <div className="lg:col-span-8 space-y-8 order-2 lg:order-1">
-           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40">
-             <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-3">
-                <div className="bg-blue-500 p-2.5 rounded-2xl text-white shadow-lg shadow-blue-100">
-                  <FileText size={24} />
-                </div>
-                Nueva Nota de Evolución (SOAP)
-             </h2>
-             <SOAPForm patientId={patient.id} />
-           </div>
-
-           <div className="space-y-8">
-              <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3 px-4">
-                <div className="bg-indigo-500 p-2.5 rounded-2xl text-white shadow-lg shadow-indigo-100">
-                  <Clock size={24} />
-                </div>
-                Histórico de Atención
-              </h2>
-              
-              <div className="space-y-8">
-                {records.length > 0 ? (
-                  records.map((record: ClinicalRecord) => (
-                    <div key={record.id} className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/30 hover:shadow-2xl transition-all relative overflow-hidden group">
-                      <div className="absolute left-0 top-0 bottom-0 w-2 bg-blue-500 transition-all group-hover:w-4" />
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                        <div className="flex items-center gap-3">
-                           <div className="bg-blue-50 text-blue-600 p-3 rounded-2xl">
-                              <Stethoscope size={24} />
-                           </div>
-                           <div>
-                              <p className="text-slate-900 font-bold">Consulta Clínica</p>
-                              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-0.5">
-                                 {format(new Date(record.created_at), "eeee, d 'de' MMMM, yyyy", { locale: es })}
-                              </p>
-                           </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Subjetivo (S)</p>
-                            <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed bg-slate-50/50 p-5 rounded-2xl border border-slate-100">{record.subjective || 'Sin datos.'}</p>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Objetivo (O)</p>
-                            <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed bg-slate-50/50 p-5 rounded-2xl border border-slate-100">{record.objective || 'Sin datos.'}</p>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Diagnóstico (A)</p>
-                            <div className="text-indigo-900 text-sm font-bold bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100/50 shadow-sm">
-                               {record.assessment || 'Sin diagnóstico registrado.'}
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Plan (P)</p>
-                            <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed bg-slate-50/50 p-5 rounded-2xl border border-slate-100">{record.plan || 'Sin plan registrado.'}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {record.medications && record.medications.length > 0 && (
-                        <div className="mt-8 pt-8 border-t border-slate-50">
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                             <Pill size={14} className="text-purple-400" /> Prescripción Farmacológica
-                           </p>
-                           <div className="grid grid-cols-1 gap-4">
-                              {record.medications?.map((med: Medication) => (
-                                <div key={med.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 group/med">
-                                   <div className="flex items-center gap-4">
-                                      <div className="p-2.5 bg-white rounded-xl border border-slate-100 text-purple-600 shadow-sm group-hover/med:scale-110 transition-transform">
-                                         <Plus size={16} />
-                                      </div>
-                                      <div>
-                                         <p className="font-extrabold text-slate-800 text-sm">{med.name}</p>
-                                         <p className="text-slate-400 text-[11px] font-bold uppercase tracking-tight">{med.dosage} • {med.frequency}</p>
-                                      </div>
-                                   </div>
-                                   <p className="text-slate-500 text-xs italic font-medium mt-2 md:mt-0 bg-white px-4 py-2 rounded-lg border border-slate-50">{med.indications}</p>
-                                </div>
-                              ))}
-                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-24 bg-white rounded-[3rem] border border-slate-50 shadow-xl shadow-slate-100">
-                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-200">
-                       <Clock size={40} />
-                    </div>
-                    <p className="text-slate-400 font-bold text-lg">Historial vacío</p>
-                    <p className="text-slate-300 text-sm mt-1">Registra la primera nota SOAP para este paciente.</p>
-                  </div>
-                )}
-              </div>
-           </div>
-        </div>
-
-        {/* Columna Derecha: Sidebar de Herramientas (4/12) */}
-        <div className="lg:col-span-4 space-y-8 order-1 lg:order-2">
-           <section className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40">
-              <h2 className="text-xl font-black text-slate-800 mb-8 flex items-center gap-3">
-                 <div className="bg-blue-500 p-2 rounded-xl text-white">
-                   <ImageIcon size={20} />
-                 </div>
-                 Galería Radiográfica
-              </h2>
-              <div className="space-y-8">
-                <RadiographUpload patientId={patient.id} />
-                <RadiographGallery patientId={patient.id} />
-              </div>
-           </section>
-
+      {/* === CONTENT FLOW === */}
+      <div className="flex flex-col space-y-16 items-center w-full max-w-7xl mx-auto pt-6">
+        
+        {/* --- ODONTOGRAMA --- */}
+        <section className="w-full">
            <Odontogram patientId={patient.id} initialData={odontogramData} />
-        </div>
+        </section>
+
+        {/* --- GALERÍA RADIOGRÁFICA --- */}
+        <section className="w-full bg-white p-8 sm:p-12 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/40">
+           <h2 className="text-2xl font-black text-slate-800 mb-10 flex items-center gap-4">
+              <div className="bg-blue-600 p-3 rounded-2xl text-white shadow-lg shadow-blue-200">
+                <ImageIcon size={24} />
+              </div>
+              Galería Radiográfica
+           </h2>
+           <div className="space-y-10">
+             <RadiographUpload patientId={patient.id} />
+             <RadiographGallery patientId={patient.id} />
+           </div>
+        </section>
+
+        {/* --- NOTA SOAP --- */}
+        <section className="w-full bg-white p-8 sm:p-12 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/40">
+           <h2 className="text-2xl font-black text-slate-800 mb-10 flex items-center gap-4">
+              <div className="bg-indigo-600 p-3 rounded-2xl text-white shadow-lg shadow-indigo-200">
+                <FileText size={24} />
+              </div>
+              Nueva Nota de Evolución (SOAP)
+           </h2>
+           <SOAPForm patientId={patient.id} />
+        </section>
+
+        {/* --- HISTORIAL CLÍNICO --- */}
+        <section className="w-full space-y-10">
+           <h2 className="text-2xl font-black text-slate-800 flex items-center gap-4 px-4 sm:px-8">
+             <div className="bg-slate-800 p-3 rounded-2xl text-white shadow-lg shadow-slate-200">
+               <Clock size={24} />
+             </div>
+             Histórico de Atención
+           </h2>
+           
+           <div className="space-y-8">
+             {records.length > 0 ? (
+               records.map((record: ClinicalRecord) => (
+                 <div key={record.id} className="bg-white border border-slate-100 rounded-[3rem] p-8 sm:p-10 shadow-xl shadow-slate-200/30 hover:shadow-2xl transition-all relative overflow-hidden group">
+                   <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-indigo-500 transition-all group-hover:w-4" />
+                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pl-4">
+                     <div className="flex items-center gap-4">
+                        <div className="bg-indigo-50 text-indigo-600 p-3.5 rounded-2xl">
+                           <Stethoscope size={24} />
+                        </div>
+                        <div>
+                           <p className="text-slate-900 font-extrabold text-lg">Consulta Clínica</p>
+                           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                              {format(new Date(record.created_at), "eeee, d 'de' MMMM, yyyy", { locale: es })}
+                           </p>
+                        </div>
+                     </div>
+                   </div>
+
+                   <div className="space-y-10 pl-4">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                       <div className="space-y-3">
+                         <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Subjetivo (S)</p>
+                         <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed bg-slate-50/50 p-6 rounded-3xl border border-slate-100 shadow-inner">{record.subjective || 'Sin datos.'}</p>
+                       </div>
+                       <div className="space-y-3">
+                         <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Objetivo (O)</p>
+                         <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed bg-slate-50/50 p-6 rounded-3xl border border-slate-100 shadow-inner">{record.objective || 'Sin datos.'}</p>
+                       </div>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                       <div className="space-y-3">
+                         <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Diagnóstico (A)</p>
+                         <div className="text-indigo-900 text-sm font-bold bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100/50 shadow-sm">
+                            {record.assessment || 'Sin diagnóstico registrado.'}
+                         </div>
+                       </div>
+                       <div className="space-y-3">
+                         <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Plan (P)</p>
+                         <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed bg-slate-50/50 p-6 rounded-3xl border border-slate-100 shadow-inner">{record.plan || 'Sin plan registrado.'}</p>
+                       </div>
+                     </div>
+                   </div>
+
+                   {record.medications && record.medications.length > 0 && (
+                     <div className="mt-12 pt-10 border-t border-slate-50 pl-4">
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                          <div className="bg-purple-100 p-1.5 rounded-lg text-purple-600"><Pill size={16} /></div>
+                          Prescripción Farmacológica
+                        </p>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                           {record.medications?.map((med: Medication) => (
+                             <div key={med.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group/med">
+                                <div className="flex items-center gap-4">
+                                   <div className="w-10 h-10 flex items-center justify-center bg-white rounded-2xl border border-slate-100 text-purple-600 shadow-sm group-hover/med:scale-110 transition-transform">
+                                      <Plus size={18} />
+                                   </div>
+                                   <div>
+                                      <p className="font-extrabold text-slate-800 text-sm md:text-base">{med.name}</p>
+                                      <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest mt-0.5">{med.dosage} • {med.frequency}</p>
+                                   </div>
+                                </div>
+                                <p className="text-slate-600 text-xs font-medium mt-4 sm:mt-0 bg-white px-4 py-2.5 rounded-xl border border-slate-100 shadow-sm">{med.indications}</p>
+                             </div>
+                           ))}
+                        </div>
+                     </div>
+                   )}
+                 </div>
+               ))
+             ) : (
+               <div className="text-center py-32 bg-white rounded-[3rem] border border-slate-50 shadow-xl shadow-slate-100">
+                 <div className="w-24 h-24 bg-slate-50 rounded-[2rem] border border-slate-100 flex items-center justify-center mx-auto mb-8 text-slate-300">
+                    <Clock size={48} />
+                 </div>
+                 <p className="text-slate-500 font-extrabold text-xl">Historial Clínico Vacío</p>
+                 <p className="text-slate-400 text-sm mt-3 font-medium">No hay registros previos para este paciente.<br/>Inicia la atención agregando una nota SOAP.</p>
+               </div>
+             )}
+           </div>
+        </section>
       </div>
     </div>
   )
