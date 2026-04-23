@@ -67,6 +67,8 @@ export interface OrchestratorResult<T = string> {
 export type AIErrorCode =
   | 'RATE_LIMIT'
   | 'NOT_CONFIGURED'
+  | 'UNAUTHORIZED'
+  | 'MODEL_NOT_FOUND'
   | 'API_ERROR'
   | 'PARSE_ERROR'
   | 'NO_PROVIDERS'

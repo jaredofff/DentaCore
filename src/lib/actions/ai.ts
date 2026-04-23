@@ -4,15 +4,11 @@
 // Server Actions públicas para el sistema de IA.
 // REGLA: Solo exportar funciones async — Turbopack no admite
 // re-exportar tipos desde archivos 'use server'.
-// Para tipos, importar directamente desde '@/lib/ai/agents'.
 // ============================================================
 
-import { runAgent } from '@/lib/ai/core/orchestrator'
+import { ClinicalAIService } from '@/lib/services/clinical-ai.service'
 import { AIError } from '@/lib/ai/types'
-import type { SOAPOutput } from '@/lib/ai/agents'
-import type { DiagnosisOutput } from '@/lib/ai/agents'
-import type { SummaryOutput } from '@/lib/ai/agents'
-import type { ConsentOutput } from '@/lib/ai/agents'
+import type { SOAPOutput, DiagnosisOutput, SummaryOutput, ConsentOutput } from '@/lib/ai/agents'
 import type { ProviderName } from '@/lib/ai/types'
 
 // ─── Tipos de respuesta (internos — no re-exportar desde 'use server') ──────
@@ -53,18 +49,13 @@ function handleAIError(err: unknown): ActionError {
 
 /**
  * Genera una nota SOAP a partir de texto libre dictado por el doctor.
- * Compatibilidad: reemplaza el uso anterior de generateSOAPFromText.
  */
 export async function generateSOAPFromText(
   input: string,
   forceProvider?: ProviderName
 ): Promise<ActionResponse<SOAPOutput>> {
-  if (!input || input.trim().length < 10) {
-    return { success: false, error: 'El texto es muy corto. Proporciona más información clínica.' }
-  }
-
   try {
-    const result = await runAgent<SOAPOutput>('soap', input, { forceProvider })
+    const result = await ClinicalAIService.generateSOAP(input, forceProvider)
     return {
       success: true,
       data: result.data,
@@ -84,12 +75,8 @@ export async function generateDiagnosis(
   clinicalData: string,
   forceProvider?: ProviderName
 ): Promise<ActionResponse<DiagnosisOutput>> {
-  if (!clinicalData || clinicalData.trim().length < 20) {
-    return { success: false, error: 'Proporciona más datos clínicos para el diagnóstico.' }
-  }
-
   try {
-    const result = await runAgent<DiagnosisOutput>('diagnosis', clinicalData, { forceProvider })
+    const result = await ClinicalAIService.generateDiagnosis(clinicalData, forceProvider)
     return {
       success: true,
       data: result.data,
@@ -109,12 +96,8 @@ export async function generateClinicalSummary(
   clinicalData: string,
   forceProvider?: ProviderName
 ): Promise<ActionResponse<SummaryOutput>> {
-  if (!clinicalData || clinicalData.trim().length < 20) {
-    return { success: false, error: 'Proporciona suficiente información para generar el resumen.' }
-  }
-
   try {
-    const result = await runAgent<SummaryOutput>('summary', clinicalData, { forceProvider })
+    const result = await ClinicalAIService.generateClinicalSummary(clinicalData, forceProvider)
     return {
       success: true,
       data: result.data,
@@ -134,12 +117,8 @@ export async function generateInformedConsent(
   procedureDescription: string,
   forceProvider?: ProviderName
 ): Promise<ActionResponse<ConsentOutput>> {
-  if (!procedureDescription || procedureDescription.trim().length < 10) {
-    return { success: false, error: 'Describe el procedimiento para generar el consentimiento.' }
-  }
-
   try {
-    const result = await runAgent<ConsentOutput>('consent', procedureDescription, { forceProvider })
+    const result = await ClinicalAIService.generateInformedConsent(procedureDescription, forceProvider)
     return {
       success: true,
       data: result.data,

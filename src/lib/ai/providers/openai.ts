@@ -52,6 +52,14 @@ export const openaiProvider: AIProvider = {
       throw new AIError('Error de red con OpenAI.', 'API_ERROR', 'openai')
     }
 
+    if (res.status === 401) {
+      throw new AIError('API key inválida en OpenAI.', 'UNAUTHORIZED', 'openai')
+    }
+
+    if (res.status === 404) {
+      throw new AIError(`Modelo ${OPENAI_MODEL} no encontrado.`, 'MODEL_NOT_FOUND', 'openai')
+    }
+
     if (res.status === 429) {
       throw new AIError('Rate limit en OpenAI.', 'RATE_LIMIT', 'openai')
     }

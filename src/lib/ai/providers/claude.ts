@@ -49,6 +49,14 @@ export const claudeProvider: AIProvider = {
       throw new AIError('Error de red con Claude.', 'API_ERROR', 'claude')
     }
 
+    if (res.status === 401) {
+      throw new AIError('API key inválida en Claude.', 'UNAUTHORIZED', 'claude')
+    }
+
+    if (res.status === 404) {
+      throw new AIError(`Modelo ${CLAUDE_MODEL} no encontrado.`, 'MODEL_NOT_FOUND', 'claude')
+    }
+
     if (res.status === 429) {
       throw new AIError('Rate limit en Claude.', 'RATE_LIMIT', 'claude')
     }
